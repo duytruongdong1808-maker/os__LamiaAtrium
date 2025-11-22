@@ -57,16 +57,41 @@ void init_scheduler(void) {
  *  State representation   prio = 0 .. MAX_PRIO, curr_slot = 0..(MAX_PRIO - prio)
  */
 struct pcb_t * get_mlq_proc(void) {
-	struct pcb_t * proc = NULL;
+	static int cur_prio = 0;     // current priority level
+	static int cur_slot = 0;     // remaining slot for this priority
+
+	struct pcb_t *proc = NULL;
 
 	pthread_mutex_lock(&queue_lock);
-	/*TODO: get a process from PRIORITY [ready_queue].
-	 *      It worth to protect by a mechanism.
-	 * */
 
-	if (proc != NULL)
-		enqueue(&running_list, proc);
-	return proc;	
+	int scanned = 0;
+	while (scanned < MAX_PRIO) {
+
+		/* If this queue has no slot left or is empty, move to next priority */
+		if (cur_slot == 0 || mlq_ready_queue[cur_prio].size == 0) {
+			cur_prio = (cur_prio + 1) % MAX_PRIO;
+			cur_slot = slot[cur_prio];
+			scanned++;
+			continue;
+		}
+
+		/* Try to get one process from current priority queue */
+		proc = dequeue(&mlq_ready_queue[cur_prio]);
+		if (proc != NULL) {
+			cur_slot--;  // consume one slot of this priority
+			enqueue(&running_list, proc);
+			pthread_mutex_unlock(&queue_lock);
+			return proc;
+		}
+
+		/* Nothing dequeued -> move to next priority */
+		cur_prio = (cur_prio + 1) % MAX_PRIO;
+		cur_slot = slot[cur_prio];
+		scanned++;
+	}
+
+	pthread_mutex_unlock(&queue_lock);
+	return NULL;	
 }
 
 void put_mlq_proc(struct pcb_t * proc) {
@@ -80,7 +105,10 @@ void put_mlq_proc(struct pcb_t * proc) {
 	 */
 
 	pthread_mutex_lock(&queue_lock);
+
+	purgequeue(&running_list, proc);
 	enqueue(&mlq_ready_queue[proc->prio], proc);
+	
 	pthread_mutex_unlock(&queue_lock);
 }
 
@@ -115,10 +143,12 @@ struct pcb_t * get_proc(void) {
 	struct pcb_t * proc = NULL;
 
 	pthread_mutex_lock(&queue_lock);
-	/*TODO: get a process from [ready_queue].
-	 *       It worth to protect by a mechanism.
-	 * 
-	 */
+
+	/* Get a process from ready_queue and mark it as running */
+	proc = dequeue(&ready_queue);
+	if (proc != NULL) {
+		enqueue(&running_list, proc);
+	}
 
 	pthread_mutex_unlock(&queue_lock);
 
