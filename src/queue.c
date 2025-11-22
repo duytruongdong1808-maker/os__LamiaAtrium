@@ -64,9 +64,8 @@ struct pcb_t *purgequeue(struct queue_t *q, struct pcb_t *proc)
         }
 
         if (idx == -1)
-                return NULL;   // không tìm thấy
+                return NULL;   
 
-        /* Dồn các phần tử phía sau lên để lấp chỗ trống */
         for (int i = idx; i < q->size - 1; i++) {
                 q->proc[i] = q->proc[i + 1];
         }
