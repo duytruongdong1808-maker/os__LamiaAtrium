@@ -211,6 +211,7 @@ int MEMPHY_put_freefp(struct memphy_struct *mp, addr_t fpn)
  */
 int init_memphy(struct memphy_struct *mp, addr_t max_size, int randomflg)
 {
+   pthread_mutex_init(&mp->lock, NULL);
    mp->storage = (BYTE *)malloc(max_size * sizeof(BYTE));
    mp->maxsz = max_size;
    memset(mp->storage, 0, max_size * sizeof(BYTE));

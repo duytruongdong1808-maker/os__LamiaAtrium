@@ -12,6 +12,7 @@
 #define OSMM_H
 
 #include <stdint.h>
+#include <pthread.h>
 
 #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
