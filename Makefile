@@ -9,7 +9,7 @@ CC = gcc
 DEBUG = -g
 
 CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED
-//CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED -DMM_PAGING
+#CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED -DMM_PAGING
 
 LFLAGS = -Wall $(DEBUG)
 
@@ -33,7 +33,6 @@ mem: $(MEM_OBJ)
 sched: $(SCHED_OBJ)
 	$(MAKE) $(LFLAGS) $(SCHED_OBJ) -o sched $(LIB)
 
-
 syscalltbl.lst: $(SRC)/syscall.tbl
 	@echo $(OS_OBJ)
 	chmod +x $(SRC)/syscalltbl.sh
@@ -42,8 +41,8 @@ syscalltbl.lst: $(SRC)/syscall.tbl
 os: $(OBJ) syscalltbl.lst $(OS_OBJ)
 	$(MAKE) $(LFLAGS) $(OS_OBJ) -o os $(LIB)
 
-$(OBJ)/%.o: %.c ${HEADER} $(OBJ)
-	$(MAKE) $(CFLAGS) $< -o $@
+$(OBJ)/%.o: $(SRC)/%.c $(HEADER)
+	$(MAKE) $(CFLAGS) -o $@ $<
 
 $(OBJ):
 	mkdir -p $(OBJ)
