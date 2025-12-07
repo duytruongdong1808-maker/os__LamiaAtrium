@@ -61,24 +61,14 @@ struct pcb_t * get_mlq_proc(void) {
 
     pthread_mutex_lock(&queue_lock);
 
-    /* MLQ + weighted slot:
-     * - Duyệt từ prio cao (0) đến thấp
-     * - Mỗi prio có slot[prio] = MAX_PRIO - prio
-     * - Khi slot[prio] > 0: cho chạy và giảm slot
-     * - Khi slot[prio] == 0: reset lại slot rồi nhường lượt cho prio tiếp theo
-     */
     for (int i = 0; i < MAX_PRIO; i++) {
         if (!empty(&mlq_ready_queue[i])) {
 
-            /* Hết quota cho mức ưu tiên này -> reset cho vòng sau, nhưng
-             * KHÔNG chọn process ở lượt này, mà xét tiếp priority thấp hơn.
-             */
             if (slot[i] <= 0) {
                 slot[i] = MAX_PRIO - i;
                 continue;
             }
 
-            /* Còn slot & có process -> lấy 1 thằng ra chạy */
             proc = dequeue(&mlq_ready_queue[i]);
             slot[i]--;
 

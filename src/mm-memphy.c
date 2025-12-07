@@ -184,7 +184,7 @@ int MEMPHY_dump(struct memphy_struct *mp)
     
    printf("Free Frames List:\n");
    while (fp != NULL) {
-      printf("%d ", fp->fpn);
+      printf("%ld ", fp->fpn);
       fp = fp->fp_next;
       count++;
    }

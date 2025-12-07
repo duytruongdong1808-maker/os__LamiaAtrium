@@ -2,7 +2,7 @@
 #define COMMON_H
 
 /* Define structs and routine could be used by every source files */
-
+#include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -41,7 +41,7 @@ typedef ARG_TYPE arg_t;
  *            based on the address mode
  */
 #ifdef MM64
-#define FORMAT_ARG "%llu"
+#define FORMAT_ARG "%lu"
 #else
 #define FORMAT_ARG "%u"
 #endif

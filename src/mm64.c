@@ -556,16 +556,11 @@ int __swap_cp_page(struct memphy_struct *mpsrc, addr_t srcfpn,
  */
 int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 {
-  struct vm_area_struct *vma0 = malloc(sizeof(struct vm_area_struct));
-  if (!vma0)
-    return -1; /* malloc error */
+    struct vm_area_struct *vma0 = malloc(sizeof(struct vm_area_struct));
+    if (!vma0)
+        return -1; /* malloc error */
 
-  /* TODO init page table directory */
-   //mm->pgd = ...
-   //mm->p4d = ...
-   //mm->pud = ...
-   //mm->pmd = ...
-   //mm->pt = ...
+    /* Init 5-level page tables */
     mm->pgd = calloc(512, sizeof(addr_t));
     mm->p4d = calloc(512, sizeof(addr_t));
     mm->pud = calloc(512, sizeof(addr_t));
@@ -575,28 +570,26 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
     if (!mm->pgd || !mm->p4d || !mm->pud || !mm->pmd || !mm->pt)
         return -1;  // malloc error
 
-  /* By default the owner comes with at least one vma */
-  vma0->vm_id = 0;
-  vma0->vm_start = 0;
-  vma0->vm_end = vma0->vm_start;
-  vma0->sbrk = vma0->vm_start;
+    /* Init page replacement list (FIFO) */
+    mm->fifo_pgn = NULL;
 
-  struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end);
-  enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
+    /* Default VMA0 */
+    vma0->vm_id    = 0;
+    vma0->vm_start = 0;
+    vma0->vm_end   = 0;
+    vma0->sbrk     = 0;
+    vma0->vm_freerg_list = NULL;
+    vma0->vm_next  = NULL;
+    vma0->vm_mm    = mm;
 
-  /* TODO update VMA0 next */
-  // vma0->next = ...
-  vma0->vm_next = NULL;
-  /* Point vma owner backward */
-  //vma0->vm_mm = mm; 
-  vma0->vm_mm = mm;
-  /* TODO: update mmap */
-  //mm->mmap = ...
-  //mm->symrgtbl = ...
-  mm->mmap = vma0;
-  mm->symrgtbl = NULL;
-  return 0;
+    struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end);
+    enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
+
+    mm->mmap     = vma0;
+    
+    return 0;
 }
+
 
 struct vm_rg_struct *init_vm_rg(addr_t rg_start, addr_t rg_end)
 {
@@ -692,27 +685,10 @@ int print_list_pgn(struct pgn_t *ip)
 
 int print_pgtbl(struct pcb_t *caller, addr_t start, addr_t end)
 {
-//  addr_t pgn_start;//, pgn_end;
-//  addr_t pgit;
-//  struct krnl_t *krnl = caller->krnl;
-
-  addr_t pgd=0;
-  addr_t p4d=0;
-  addr_t pud=0;
-  addr_t pmd=0;
-  addr_t pt=0;
-
-  get_pd_from_address(start, &pgd, &p4d, &pud, &pmd, &pt);
-
-  /* TODO traverse the page map and dump the page directory entries */
-  printf("\n-- PTE entries --\n");
-    for (int i = 0; i < 512; i++) {
-        if (krnl->mm->pt[i] != 0) {
-            printf("PT[%d] = " FORMATX_ADDR "\n", i, krnl->mm->pt[i]);
-        }
-    }
     
-  return 0;
+
+    return 0;
 }
+
 
 #endif  //def MM64

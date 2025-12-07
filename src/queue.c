@@ -27,7 +27,6 @@ struct pcb_t *dequeue(struct queue_t *q)
         return NULL;
 
 #ifdef MLQ_SCHED
-    // --- MLQ mode: dùng FIFO trong từng hàng prio ---
     struct pcb_t *chosen = q->proc[0];
 
     for (int i = 0; i < q->size - 1; i++) {
@@ -38,7 +37,6 @@ struct pcb_t *dequeue(struct queue_t *q)
 
     return chosen;
 #else
-    // --- Mode cũ: chọn process có priority cao hơn (số nhỏ hơn) ---
     int best = 0;
 
     for (int i = 1; i < q->size; i++) {

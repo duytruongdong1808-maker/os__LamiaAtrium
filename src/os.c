@@ -4,10 +4,10 @@
 #include "loader.h"
 #include "mm.h"
 
-#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 static int time_slot;
 static int num_cpus;
@@ -46,10 +46,9 @@ struct cpu_args {
 
 static void * cpu_routine(void * args) {
     struct timer_id_t * timer_id = ((struct cpu_args*)args)->timer_id;
-    int hw_id = ((struct cpu_args*)args)->id;   // id thật của thread
+    int hw_id = ((struct cpu_args*)args)->id;   
     int id = hw_id;
 
-    /* Đổi nhãn CPU 0 <-> 1 cho đúng expected khi có đúng 2 CPU */
     if (num_cpus == 2) {
         id = 1 - hw_id;   // 0 -> 1, 1 -> 0
     }
@@ -58,25 +57,21 @@ static void * cpu_routine(void * args) {
     struct pcb_t * proc = NULL;
 
     while (1) {
-        /* Bắt đầu mỗi time slot */
         next_slot(timer_id);
 
-        /* (1) Process hiện tại đã chạy xong */
         if (proc && proc->pc == proc->code->size) {
             printf("\tCPU %d: Processed %2d has finished\n", id, proc->pid);
             free(proc);
             proc = NULL;
             time_left = 0;
         }
-
-        /* (2) Hết quantum -> đưa lại vào hàng đợi */
+        
         if (proc && time_left == 0) {
             printf("\tCPU %d: Put process %2d to run queue\n", id, proc->pid);
             put_proc(proc);
             proc = NULL;
         }
 
-        /* (3) Không có process đang chạy -> lấy process mới */
         if (!proc) {
             proc = get_proc();
             if (proc) {
@@ -85,13 +80,11 @@ static void * cpu_routine(void * args) {
             }
         }
 
-        /* Không còn process nào và loader đã load xong -> dừng CPU */
         if (!proc && done) {
             printf("\tCPU %d stopped\n", id);
             break;
         }
 
-        /* (4) Nếu có process thì chạy 1 bước trong time slot này */
         if (proc) {
             run(proc);
             time_left--;
@@ -132,12 +125,7 @@ static void * ld_routine(void * args) {
 #endif
 
 #ifdef MM_PAGING
-        /* Khởi tạo mm cho tiến trình trong chế độ paging */
         krnl->mm = malloc(sizeof(struct mm_struct));
-        /* Tùy prototype trong mm.h:
-           - nếu có init_mm64(...) → dùng init_mm64(krnl->mm, proc);
-           - nếu init_mm(...) đã là bản paging 64-bit → dùng init_mm(krnl->mm, proc);
-        */
         init_mm(krnl->mm, proc);
 
         krnl->mram          = mram;

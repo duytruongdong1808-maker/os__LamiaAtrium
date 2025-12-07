@@ -42,7 +42,6 @@ int __sys_memmap(struct krnl_t *krnl, uint32_t pid, struct sc_regs* regs)
     */
 
 	struct queue_t *running_list = krnl->running_list;
-    int i;
 
     /* TODO Maching and marking the process */
     /* user process are not allowed to access directly pcb in kernel space of syscall */

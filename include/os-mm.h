@@ -8,11 +8,12 @@
  * for the sole purpose of studying while attending the course CO2018.
  */
 
-#ifndef OSMM_H
-#define OSMM_H
+#ifndef OS_MM_H
+#define OS_MM_H
 
-#include <stdint.h>
 #include <pthread.h>
+#include <stdint.h>
+
 
 #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
@@ -39,8 +40,8 @@ typedef ADDR_TYPE addr_t;
  *            based on the address mode
  */
 #ifdef MM64
-#define FORMAT_ADDR "%lld"
-#define FORMATX_ADDR "%16llx"
+#define FORMAT_ADDR "%ld"
+#define FORMATX_ADDR "%16lx"
 #else
 #define FORMAT_ADDR "%d"
 #define FORMATX_ADDR "%08x"
