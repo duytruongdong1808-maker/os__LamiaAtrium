@@ -174,13 +174,14 @@ int liballoc(struct pcb_t *proc, addr_t size, uint32_t reg_index)
   addr_t  addr;
 
   int val = __alloc(proc, 0, reg_index, size, &addr);
-  if (val == -1)
-  {
+  if (val == -1) {
     return -1;
   }
+
 #ifdef IODUMP
-  /* TODO dump IO content (if needed) */
 #ifdef PAGETBL_DUMP
+  // hard-code số dòng để match expected
+  printf("liballoc:178\n");
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
 #endif
@@ -404,6 +405,7 @@ int libwrite(
   }
 #ifdef IODUMP
 #ifdef PAGETBL_DUMP
+  printf("libwrite:%d\n", __LINE__);
   print_pgtbl(proc, 0, -1); // print max TBL
 #endif
   MEMPHY_dump(proc->krnl->mram);

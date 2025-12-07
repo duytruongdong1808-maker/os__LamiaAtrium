@@ -8,8 +8,8 @@ INCLUDE = include
 CC = gcc
 DEBUG = -g
 
-CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED
-#CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED -DMM_PAGING
+#CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED
+CFLAGS = -Wall -c $(DEBUG) -pthread -DMLQ_SCHED -DMM_PAGING
 
 LFLAGS = -Wall $(DEBUG)
 

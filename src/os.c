@@ -173,24 +173,10 @@ static void read_config(const char * path) {
         exit(1);
     }
 
-
     if (fscanf(file, "%d %d %d", &time_slot, &num_cpus, &num_processes) != 3) {
         fprintf(stderr, "Cannot read header line in %s\n", path);
         exit(1);
     }
-
-#ifdef MM_PAGING
-
-    if (fscanf(file, "%d %d %d %d %d",
-               &memramsz,
-               &memswpsz[0],
-               &memswpsz[1],
-               &memswpsz[2],
-               &memswpsz[3]) != 5) {
-        fprintf(stderr, "Cannot read memory config line in %s\n", path);
-        exit(1);
-    }
-#endif
 
     ld_processes.path = (char**)malloc(sizeof(char*) * num_processes);
     ld_processes.start_time = (unsigned long*)
@@ -201,7 +187,71 @@ static void read_config(const char * path) {
 #endif
 
     int i;
-    for (i = 0; i < num_processes; i++) {
+    int start_index = 0;   
+
+#ifdef MM_PAGING
+    char line[256];
+
+    do {
+        if (!fgets(line, sizeof(line), file)) {
+            fprintf(stderr, "Unexpected end of file after header in %s\n", path);
+            exit(1);
+        }
+    } while (line[0] == '\n' || line[0] == '\r');
+
+    int r = sscanf(line, "%d %d %d %d %d",
+                   &memramsz,
+                   &memswpsz[0],
+                   &memswpsz[1],
+                   &memswpsz[2],
+                   &memswpsz[3]);
+
+    if (r == 5) {
+        for (i = 5; i < PAGING_MAX_MMSWP; i++) {
+            memswpsz[i] = 0;
+        }
+    } else {
+
+        char proc[100] = {0};
+
+#ifdef MLQ_SCHED
+        unsigned long st, pr;
+        int nread = sscanf(line, "%lu %99s %lu",
+                           &st,
+                           proc,
+                           &pr);
+        if (nread != 3) {
+            fprintf(stderr,
+                    "Config error at process 0 (dong 2 trong file %s), nread=%d\n",
+                    path, nread);
+            exit(1);
+        }
+        ld_processes.start_time[0] = st;
+        ld_processes.prio[0] = pr;
+#else
+        unsigned long st;
+        int nread = sscanf(line, "%lu %99s",
+                           &st,
+                           proc);
+        if (nread != 2) {
+            fprintf(stderr,
+                    "Config error at process 0 (dong 2 trong file %s), nread=%d\n",
+                    path, nread);
+            exit(1);
+        }
+        ld_processes.start_time[0] = st;
+#endif
+
+        size_t len0 = strlen("input/proc/") + strlen(proc) + 1;
+        ld_processes.path[0] = (char*)malloc(len0);
+        snprintf(ld_processes.path[0], len0, "input/proc/%s", proc);
+
+        start_index = 1;  
+    }
+#endif /* MM_PAGING */
+
+
+    for (i = start_index; i < num_processes; i++) {
         char proc[100] = {0};
 
 #ifdef MLQ_SCHED
@@ -234,6 +284,7 @@ static void read_config(const char * path) {
 
     fclose(file);
 }
+
 
 /*----------------------------------------------------------
  * main

@@ -685,10 +685,18 @@ int print_list_pgn(struct pgn_t *ip)
 
 int print_pgtbl(struct pcb_t *caller, addr_t start, addr_t end)
 {
-    
+    struct mm_struct *mm = caller->krnl->mm;
+
+    printf("print_pgtbl:\n");
+    printf(" PDG=%p P4g=%p PUD=%p PMD=%p\n",
+           (void *)mm->pgd,
+           (void *)mm->p4d,
+           (void *)mm->pud,
+           (void *)mm->pmd);
 
     return 0;
 }
+
 
 
 #endif  //def MM64
