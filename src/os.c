@@ -213,14 +213,12 @@ static void read_config(const char * path) {
                    &memswpsz[3]);
 
     if (r == 5) {
-        /* Dòng 2 là cấu hình MEM → paging mode */
         runtime_paging = 1;
 
         for (i = 5; i < PAGING_MAX_MMSWP; i++) {
             memswpsz[i] = 0;
         }
     } else {
-        /* Dòng 2 là process luôn → non-paging mode */
         runtime_paging = 0;
 
         char proc[100] = {0};
