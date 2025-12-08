@@ -22,6 +22,7 @@
 #define IODUMP 1
 #define PAGETBL_DUMP 1
 
+extern int runtime_paging; 
 /* 
  * @bksysnet:
  *    The address mode must be explicitly define in MM64 or no-MM64

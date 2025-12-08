@@ -4,6 +4,7 @@
 #include "mm.h"
 #include "syscall.h"
 #include "libmem.h"
+#include "os-cfg.h"
 
 int calc(struct pcb_t *proc)
 {
@@ -60,53 +61,59 @@ int write(
 
 int run(struct pcb_t *proc)
 {
-	/* Check if Program Counter point to the proper instruction */
-	if (proc->pc >= proc->code->size)
-	{
-		return 1;
-	}
+    /* Check if Program Counter point to the proper instruction */
+    if (proc->pc >= proc->code->size)
+    {
+        return 1;
+    }
 
-	struct inst_t ins = proc->code->text[proc->pc];
-	proc->pc++;
-	int stat = 1;
-switch (ins.opcode)
-	{
-	case CALC:
-		stat = calc(proc);
-		break;
-	case ALLOC:
-#ifdef MM_PAGING
-		stat = liballoc(proc, ins.arg_0, ins.arg_1);
-#else
-		stat = alloc(proc, ins.arg_0, ins.arg_1);
-#endif
-		break;
-	case FREE:
-#ifdef MM_PAGING
-		stat = libfree(proc, ins.arg_0);
-#else
-		stat = free_data(proc, ins.arg_0);
-#endif
-		break;
-	case READ:
-#ifdef MM_PAGING
-		stat = libread(proc, ins.arg_0, ins.arg_1, (uint32_t*) &ins.arg_2);
-#else
-		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#endif
-		break;
-	case WRITE:
-#ifdef MM_PAGING
-		stat = libwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#else
-		stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);
-#endif
-		break;
-	case SYSCALL:
-		stat = libsyscall(proc, ins.arg_0, ins.arg_1, ins.arg_2, ins.arg_3);
-		break;
-	default:
-		stat = 1;
-	}
-	return stat;
+    struct inst_t ins = proc->code->text[proc->pc];
+    proc->pc++;
+    int stat = 1;
+
+    switch (ins.opcode)
+    {
+    case CALC:
+        stat = calc(proc);
+        break;
+
+    case ALLOC:
+        if (runtime_paging)
+            stat = liballoc(proc, ins.arg_0, ins.arg_1);
+        else
+            stat = alloc(proc, ins.arg_0, ins.arg_1);
+        break;
+
+    case FREE:
+        if (runtime_paging)
+            stat = libfree(proc, ins.arg_0);
+        else
+            stat = free_data(proc, ins.arg_0);
+        break;
+
+    case READ:
+        if (runtime_paging)
+            stat = libread(proc, ins.arg_0, ins.arg_1, (uint32_t *)&ins.arg_2);
+        else
+            stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+        break;
+
+    case WRITE:
+        if (runtime_paging)
+            stat = libwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+        else
+            stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+        break;
+
+    case SYSCALL:
+        stat = libsyscall(proc, ins.arg_0, ins.arg_1, ins.arg_2, ins.arg_3);
+        break;
+
+    default:
+        stat = 1;
+        break;
+    }
+
+    return stat;
 }
+
