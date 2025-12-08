@@ -176,19 +176,17 @@ int MEMPHY_dump(struct memphy_struct *mp)
   /*TODO dump memphy contnt mp->storage
    *     for tracing the memory content
    */
+   pthread_mutex_lock(&mp->lock);
    struct framephy_struct *fp = mp->free_fp_list;
    int count = 0;
 
-   printf("\n--- MEMPHY DUMP ---\n");
-   printf("Max Size: %d\n", mp->maxsz);
-    
-   printf("Free Frames List:\n");
    while (fp != NULL) {
       printf("%ld ", fp->fpn);
       fp = fp->fp_next;
       count++;
    }
-   printf("\nTotal Free Frames: %d\n", count);
+
+   pthread_mutex_unlock(&mp->lock);
    return 0;
 }
 
