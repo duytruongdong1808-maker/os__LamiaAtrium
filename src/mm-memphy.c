@@ -181,7 +181,6 @@ int MEMPHY_dump(struct memphy_struct *mp)
    int count = 0;
 
    while (fp != NULL) {
-      printf("%ld ", fp->fpn);
       fp = fp->fp_next;
       count++;
    }
@@ -192,11 +191,11 @@ int MEMPHY_dump(struct memphy_struct *mp)
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, addr_t fpn)
 {
-   struct framephy_struct *fp = mp->free_fp_list;
    struct framephy_struct *newnode = malloc(sizeof(struct framephy_struct));
    /* Create new node with value fpn */
    newnode->fpn = fpn;
    pthread_mutex_lock(&mp->lock); // LOCKED
+   struct framephy_struct *fp = mp->free_fp_list;
    newnode->fp_next = fp;
    mp->free_fp_list = newnode;
    pthread_mutex_unlock(&mp->lock); // UNLOCKED
